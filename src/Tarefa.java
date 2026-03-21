@@ -2,6 +2,8 @@ public class Tarefa {
     String nome;
     String descricao;
 
+    public Tarefa(){};
+
     public Tarefa(String nome, String descricao) {
         this.nome = nome;
         this.descricao = descricao;
@@ -25,7 +27,7 @@ public class Tarefa {
 
     @Override
     public String toString(){
-        return "Nome: " + nome + "\n" + "Descricao: " + descricao;
+        return "Tarefa: " + nome + "\n" + "Descrição: " + descricao;
     }
 
 }
