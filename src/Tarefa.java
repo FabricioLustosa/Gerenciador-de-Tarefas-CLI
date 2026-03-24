@@ -1,6 +1,7 @@
 public class Tarefa {
     String nome;
     String descricao;
+    boolean concluida;
 
     public Tarefa(){};
 
@@ -23,6 +24,10 @@ public class Tarefa {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+    }
+
+    public void setConcluida(boolean concluida){
+      this.concluida = concluida;
     }
 
     @Override

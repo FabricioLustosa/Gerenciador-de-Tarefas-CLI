@@ -4,6 +4,8 @@ import java.util.ArrayList;
 public class GerenciadorTarefas {
 
     ArrayList<Tarefa> tarefas = new ArrayList<>();
+    ArrayList<Tarefa> tarefasConcluidas = new ArrayList<>();
+    Tarefa ultimaConcluida;
 
     File arquivo;
 
@@ -32,6 +34,7 @@ public class GerenciadorTarefas {
             bw.write(tarefa.toString());
             bw.newLine();
 
+            salvarArquivo();
             return tarefa;
 
         } catch (IOException e) {
@@ -40,22 +43,32 @@ public class GerenciadorTarefas {
         return null;
     }
 
-    public void listarTarefas(){
+    public String listarTarefas(){
         try(BufferedReader br = new BufferedReader(new FileReader(arquivo))){
+
             String linha;
+            int count = 1;
+            StringBuilder sb = new StringBuilder();
+
             while((linha = br.readLine()) != null){
-                System.out.println(linha);
+                if(linha.startsWith("Tarefa: ")){
+                    sb.append("[" + count + "] " + linha +"\n");
+                }
+
                 if(linha.startsWith("Descrição: ")){
-                    System.out.println();
+                    sb.append(linha + "\n");
+                    count++;
                 }
             }
+            return sb.toString();
+
+
         }catch(IOException e){
-            System.out.println("Erro: " + e.getMessage());
+            return "Erro: " + e.getMessage();
         }
-        System.out.println("Existem " + tarefas.size() + " tarefas na lista");
     }
 
-    public void carregarTarefas(){
+    public String carregarTarefas(){
         try(BufferedReader br = new BufferedReader(new FileReader(arquivo))){
             String linha;
             String nome = "";
@@ -70,23 +83,57 @@ public class GerenciadorTarefas {
                 }
             }
         }catch(IOException e){
-            System.out.println("Erro: " + e.getMessage());
+            return "Erro: " + e.getMessage();
         }
-        System.out.println("Existem " + tarefas.size() + " tarefas na lista");
+        return "Existem " + tarefas.size() + " tarefas na lista. \n";
     }
 
-    public void marcarConluida(){
-        System.out.println(tarefas);
+    public boolean marcarConluida(int input){
+       if(input < 0 || input > tarefas.size()){
+           return false;
+       }else {
+           Tarefa tarefaConcluida = tarefas.remove(input);
+           tarefaConcluida.setConcluida(true);
+           tarefasConcluidas.add(tarefaConcluida);
+           salvarArquivo();
+
+
+           ultimaConcluida = tarefaConcluida;
+
+           return true;
+       }
     }
 
-    public void mostrarOpecoesDaLista(){
-        System.out.println();
-        System.out.println("O que deseja fazer em sua lista de tarefas? \n" +
-        "[1] - Criar tarefas \n" +
-        "[2] - Listar tarefas \n" +
-        "[3] - Marcar tarefas como concluída \n" +
-        "[4] - Deletar tarefas \n" +
-        "[5] - Sair");
+
+    public String mostrarOpecoesDaLista(){
+        return "O que deseja fazer em sua lista de tarefas? \n" +
+                "[1] - Criar tarefas \n" +
+                "[2] - Listar tarefas \n" +
+                "[3] - Marcar tarefas como concluída \n" +
+                "[4] - Deletar tarefas \n" +
+                "[5] - Sair";
+    }
+
+    public void salvarArquivo(){
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
+
+            bw.write("===PENDENTES===");
+            bw.newLine();
+            for(Tarefa tarefa : tarefas){
+                bw.write(tarefa.toString());
+                bw.newLine();
+            }
+            bw.write("===CONCLUÍDAS===");
+            bw.newLine();
+            for(Tarefa tarefasConcluidas : tarefasConcluidas){
+                bw.write(tarefasConcluidas.toString());
+                bw.newLine();
+            }
+            bw.newLine();
+        } catch (IOException e) {
+            System.out.println("Erro ao criar a tarefa " + e.getMessage());
+        }
     }
 
     public void sair(){
