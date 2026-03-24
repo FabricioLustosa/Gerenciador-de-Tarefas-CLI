@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -15,8 +16,10 @@ public class GerenciadorTarefas {
 
             if(arquivo.createNewFile()){
                 System.out.println("Arquivo criado: " + arquivo.getName());
+                Desktop.getDesktop().open(arquivo);
             }else{
                 System.out.println("O arquivo já existe.");
+                Desktop.getDesktop().open(arquivo);
             }
             return arquivo;
         }catch(IOException e){
@@ -25,22 +28,10 @@ public class GerenciadorTarefas {
         return null;
     }
     public Tarefa addtarefa(String nome, String descricao){
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo, true))) {
-
             Tarefa tarefa = new Tarefa(nome, descricao);
             tarefas.add(tarefa);
-
-            bw.write(tarefa.toString());
-            bw.newLine();
-
             salvarArquivo();
             return tarefa;
-
-        } catch (IOException e) {
-            System.out.println("Erro ao criar a tarefa " + e.getMessage());
-        }
-        return null;
     }
 
     public String listarTarefas(){
@@ -120,6 +111,10 @@ public class GerenciadorTarefas {
 
             bw.write("===PENDENTES===");
             bw.newLine();
+            if(tarefas.isEmpty()){
+                bw.write("Todas as tarefas foram concluídas.");
+                bw.newLine();
+            }
             for(Tarefa tarefa : tarefas){
                 bw.write(tarefa.toString());
                 bw.newLine();
