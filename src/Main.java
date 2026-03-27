@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -32,7 +33,7 @@ public class Main {
                         System.out.println("Digite a descrição da tarefa a ser adicionada: ");
                         String tarefaDescricao = sc.nextLine();
 
-                        gerenciadorTarefas.addtarefa(tarefaNome, tarefaDescricao);
+                        gerenciadorTarefas.addTarefa(tarefaNome, tarefaDescricao);
 
                         System.out.println("Deseja adicionar outra tarefa? [s/n]");
                         String resposta = sc.nextLine();
@@ -53,11 +54,52 @@ public class Main {
                         int tarefaConcluida = sc.nextInt() - 1;
                         sc.nextLine();
 
-                        if(!gerenciadorTarefas.marcarConluida(tarefaConcluida)){
+                        if(!gerenciadorTarefas.marcarConcluida(tarefaConcluida)){
                             System.out.println("Tarefa não encontrada, digite um índice válido...");
                             continue;
                         }else{
                             System.out.println("Tarefa: " + gerenciadorTarefas.ultimaConcluida.getNome() + "\n Status: concluída. \n");
+                        }
+                        break;
+                    }
+                    break;
+                case 4:
+                    while(true){
+                        System.out.println("Deseja deletar tarefa pendente ou concluída? [p/c]");
+                        String resposta = sc.nextLine();
+                        ArrayList<Tarefa> listaEscolhida;
+
+                        if(resposta.equalsIgnoreCase("p")) {
+                            listaEscolhida = gerenciadorTarefas.pegarListaDePendentes();
+
+                        }else if(resposta.equalsIgnoreCase("c")) {
+                            listaEscolhida = gerenciadorTarefas.pegarListaDeConcluidas();
+                        }else {
+                            System.out.println("Escolha entre p e c...");
+                            continue;
+                        }
+
+                        while(true){
+                            System.out.println("Qual tarefa deseja deletar?");
+                            for(int i = 0; i < listaEscolhida.size(); i++){
+                                System.out.println((i + 1) + " - " + listaEscolhida.get(i));
+                            }
+
+                            if(!sc.hasNextInt()){
+                                System.out.println("Digite um número válido.");
+                                sc.nextLine();
+                                continue;
+                            }
+                            int tarefaDeletar = sc.nextInt() - 1;
+                            sc.nextLine();
+
+                            if(gerenciadorTarefas.deletarTarefa(listaEscolhida, tarefaDeletar)){
+                                System.out.println("Tarefa deletada.");
+                            }else{
+                                System.out.println("Erro ao deletar tarefa... tente novamente.\n");
+                                continue;
+                            }
+                            break;
                         }
                         break;
                     }

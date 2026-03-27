@@ -1,4 +1,3 @@
-import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -16,10 +15,8 @@ public class GerenciadorTarefas {
 
             if(arquivo.createNewFile()){
                 System.out.println("Arquivo criado: " + arquivo.getName());
-                Desktop.getDesktop().open(arquivo);
             }else{
                 System.out.println("O arquivo já existe.");
-                Desktop.getDesktop().open(arquivo);
             }
             return arquivo;
         }catch(IOException e){
@@ -27,7 +24,7 @@ public class GerenciadorTarefas {
         }
         return null;
     }
-    public Tarefa addtarefa(String nome, String descricao){
+    public Tarefa addTarefa(String nome, String descricao){
             Tarefa tarefa = new Tarefa(nome, descricao);
             tarefas.add(tarefa);
             salvarArquivo();
@@ -35,59 +32,83 @@ public class GerenciadorTarefas {
     }
 
     public String listarTarefas(){
-        try(BufferedReader br = new BufferedReader(new FileReader(arquivo))){
 
-            String linha;
-            int count = 1;
             StringBuilder sb = new StringBuilder();
+            int count = 1;
 
-            while((linha = br.readLine()) != null){
-                if(linha.startsWith("Tarefa: ")){
-                    sb.append("[" + count + "] " + linha +"\n");
-                }
-
-                if(linha.startsWith("Descrição: ")){
-                    sb.append(linha + "\n");
+            sb.append("\n=== PENDENTES ===.\n");
+            if(!tarefas.isEmpty()){
+                for(Tarefa tarefa : tarefas) {
+                    sb.append("[").append(count).append("] ")
+                            .append(tarefa.getNome()).append("\n");
+                    sb.append("Descrição: ").append(tarefa.getDescricao()).append("\n");
                     count++;
                 }
+            }else{
+                sb.append("Sem tarefas pendentes.");
+            }
+            sb.append("\n=== CONCLUÍDAS ===.\n");
+            if(!tarefasConcluidas.isEmpty()){
+                for(Tarefa tarefa : tarefasConcluidas) {
+                    sb.append("[").append(count).append("] ")
+                            .append(tarefa.getNome()).append("\n");
+                    sb.append("Descrição: ").append(tarefa.getDescricao()).append("\n");
+                    count++;
+                }
+            }else{
+                sb.append("Nenhuma tarefa foi concluida.\n");
             }
             return sb.toString();
 
-
-        }catch(IOException e){
-            return "Erro: " + e.getMessage();
-        }
     }
 
     public String carregarTarefas(){
         try(BufferedReader br = new BufferedReader(new FileReader(arquivo))){
             String linha;
-            String nome = "";
+            String nome = null;
             String descricao;
+
+            boolean secaoConcluidas = false;
+            tarefas.clear();
+            tarefasConcluidas.clear();
+
             while((linha = br.readLine()) != null){
+                if(linha.equals("===CONCLUÍDAS===")){
+                    secaoConcluidas = true;
+                    continue;
+                }
                 if(linha.startsWith("Tarefa: ") ){
                     nome =  linha.substring("Tarefa: ".length());
-                }else if((linha.startsWith("Descrição: "))){
+                }else if((linha.startsWith("Descrição: "))) {
                     descricao = linha.substring("Descrição: ".length());
-                    Tarefa tarefa = new Tarefa(nome, descricao);
-                    tarefas.add(tarefa);
+
+                    if(nome != null){
+                        Tarefa tarefa = new Tarefa(nome, descricao);
+
+                        if (secaoConcluidas) {
+                            tarefasConcluidas.add(tarefa);
+                        } else {
+                            tarefas.add(tarefa);
+                        }
+                    }
+                    nome = null;
+                    descricao = null;
                 }
             }
         }catch(IOException e){
             return "Erro: " + e.getMessage();
         }
-        return "Existem " + tarefas.size() + " tarefas na lista. \n";
+        return "Existem " + tarefas.size() + " tarefas pendentes e " + tarefasConcluidas.size() + " concluídas.\n";
     }
 
-    public boolean marcarConluida(int input){
-       if(input < 0 || input > tarefas.size()){
+    public boolean marcarConcluida(int input){
+       if(input < 0 || input >= tarefas.size()){
            return false;
        }else {
            Tarefa tarefaConcluida = tarefas.remove(input);
            tarefaConcluida.setConcluida(true);
            tarefasConcluidas.add(tarefaConcluida);
            salvarArquivo();
-
 
            ultimaConcluida = tarefaConcluida;
 
@@ -116,13 +137,20 @@ public class GerenciadorTarefas {
                 bw.newLine();
             }
             for(Tarefa tarefa : tarefas){
-                bw.write(tarefa.toString());
+                bw.write("Tarefa: " + tarefa.getNome());
+                bw.newLine();
+                bw.write("Descrição: " + tarefa.getDescricao());
                 bw.newLine();
             }
             bw.write("===CONCLUÍDAS===");
             bw.newLine();
+            if(tarefasConcluidas.isEmpty()){
+                bw.write("Nenhum tarefa foi concluída.");
+            }
             for(Tarefa tarefasConcluidas : tarefasConcluidas){
-                bw.write(tarefasConcluidas.toString());
+                bw.write("Tarefa: " + tarefasConcluidas.getNome());
+                bw.newLine();
+                bw.write("Descrição: " + tarefasConcluidas.getDescricao());
                 bw.newLine();
             }
             bw.newLine();
@@ -131,7 +159,27 @@ public class GerenciadorTarefas {
         }
     }
 
+    public boolean deletarTarefa(ArrayList<Tarefa> lista, int indice){
+        if(lista.isEmpty() || indice < 0 || indice >= lista.size()){
+            return false;
+        }else{
+            lista.remove(indice);
+            salvarArquivo();
+
+            return true;
+        }
+    }
+
+    public ArrayList<Tarefa> pegarListaDePendentes(){
+        return tarefas;
+    }
+    public ArrayList<Tarefa> pegarListaDeConcluidas(){
+        return tarefasConcluidas;
+    }
+
+
     public void sair(){
+        salvarArquivo();
         System.exit(0);
     }
 }
