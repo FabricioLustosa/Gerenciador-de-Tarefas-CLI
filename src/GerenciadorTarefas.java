@@ -1,5 +1,11 @@
 import java.io.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import db.DBConnection;
+import java.sql.Connection;
+import java.util.List;
 
 public class GerenciadorTarefas {
 
@@ -25,80 +31,43 @@ public class GerenciadorTarefas {
         return null;
     }
     public Tarefa addTarefa(String nome, String descricao){
-            Tarefa tarefa = new Tarefa(nome, descricao);
-            tarefas.add(tarefa);
-            salvarArquivo();
-            return tarefa;
-    }
+        String sql = "INSERT INTO tb_tarefa (nome, descricao) VALUES (?, ?)";
+        try(Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-    public String listarTarefas(){
+            stmt.setString(1, nome);
+            stmt.setString(2, descricao);
+            stmt.executeUpdate();
 
-            StringBuilder sb = new StringBuilder();
-            int count = 1;
+        }catch(SQLException e){
+            e.printStackTrace();
 
-            sb.append("\n=== PENDENTES ===.\n");
-            if(!tarefas.isEmpty()){
-                for(Tarefa tarefa : tarefas) {
-                    sb.append("[").append(count).append("] ")
-                            .append(tarefa.getNome()).append("\n");
-                    sb.append("Descrição: ").append(tarefa.getDescricao()).append("\n");
-                    count++;
-                }
-            }else{
-                sb.append("Sem tarefas pendentes.");
-            }
-            sb.append("\n=== CONCLUÍDAS ===.\n");
-            if(!tarefasConcluidas.isEmpty()){
-                for(Tarefa tarefa : tarefasConcluidas) {
-                    sb.append("[").append(count).append("] ")
-                            .append(tarefa.getNome()).append("\n");
-                    sb.append("Descrição: ").append(tarefa.getDescricao()).append("\n");
-                    count++;
-                }
-            }else{
-                sb.append("Nenhuma tarefa foi concluida.\n");
-            }
-            return sb.toString();
-
-    }
-
-    public String carregarTarefas(){
-        try(BufferedReader br = new BufferedReader(new FileReader(arquivo))){
-            String linha;
-            String nome = null;
-            String descricao;
-
-            boolean secaoConcluidas = false;
-            tarefas.clear();
-            tarefasConcluidas.clear();
-
-            while((linha = br.readLine()) != null){
-                if(linha.equals("===CONCLUÍDAS===")){
-                    secaoConcluidas = true;
-                    continue;
-                }
-                if(linha.startsWith("Tarefa: ") ){
-                    nome =  linha.substring("Tarefa: ".length());
-                }else if((linha.startsWith("Descrição: "))) {
-                    descricao = linha.substring("Descrição: ".length());
-
-                    if(nome != null){
-                        Tarefa tarefa = new Tarefa(nome, descricao);
-
-                        if (secaoConcluidas) {
-                            tarefasConcluidas.add(tarefa);
-                        } else {
-                            tarefas.add(tarefa);
-                        }
-                    }
-                    nome = null;
-                    descricao = null;
-                }
-            }
-        }catch(IOException e){
-            return "Erro: " + e.getMessage();
         }
-        return "Existem " + tarefas.size() + " tarefas pendentes e " + tarefasConcluidas.size() + " concluídas.\n";
+        return null;
+    }
+
+    public List<Tarefa> listarTarefas(){
+
+        List<Tarefa> tarefas = new ArrayList<>();
+        String sql = "SELECT * FROM tb_tarefa";
+
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()){
+
+            while(rs.next()){
+                Tarefa tarefa = new Tarefa();
+                tarefa.setId(rs.getInt("id"));
+                tarefa.setNome(rs.getString("nome"));
+                tarefa.setDescricao(rs.getString("descricao"));
+                tarefa.setConcluida(rs.getBoolean("concluida"));
+
+                tarefas.add(tarefa);
+            }
+
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return tarefas;
     }
 
     public boolean marcarConcluida(int input){
@@ -159,14 +128,16 @@ public class GerenciadorTarefas {
         }
     }
 
-    public boolean deletarTarefa(ArrayList<Tarefa> lista, int indice){
-        if(lista.isEmpty() || indice < 0 || indice >= lista.size()){
-            return false;
-        }else{
-            lista.remove(indice);
-            salvarArquivo();
+    public void deletarTarefa(int id){
+        String sql = "DELETE FROM tb_tarefa WHERE id = ?";
 
-            return true;
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+        ){
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
+        }catch(SQLException e){
+            e.printStackTrace();
         }
     }
 

@@ -1,6 +1,7 @@
 public class Tarefa {
-    String nome;
-    String descricao;
+    private Integer id;
+    private String nome;
+    private String descricao;
     boolean concluida;
 
     public Tarefa(){};
@@ -8,6 +9,15 @@ public class Tarefa {
     public Tarefa(String nome, String descricao) {
         this.nome = nome;
         this.descricao = descricao;
+        this.concluida = false;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNome() {
@@ -26,13 +36,17 @@ public class Tarefa {
         this.descricao = descricao;
     }
 
+    public boolean isConcluida(){
+        return concluida;
+    }
+
     public void setConcluida(boolean concluida){
       this.concluida = concluida;
     }
 
     @Override
     public String toString(){
-        return "Tarefa: " + nome + "\n" + "Descrição: " + descricao;
+        return "Tarefa: " + nome + "\n" + "Descrição: " + descricao + "\n" + "Concluída " + (concluida ? "Sim" : "Não");
     }
 
 }
