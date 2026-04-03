@@ -1,46 +1,37 @@
 import java.io.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import db.DBConnection;
-import java.sql.Connection;
+
 import java.util.List;
 
 public class GerenciadorTarefas {
 
-    ArrayList<Tarefa> tarefas = new ArrayList<>();
-    ArrayList<Tarefa> tarefasConcluidas = new ArrayList<>();
     Tarefa ultimaConcluida;
 
-    File arquivo;
 
-    public File criarArquivo(String path, String nomeArquivo){
-        try{
-            arquivo = new File(path, nomeArquivo);
-
-            if(arquivo.createNewFile()){
-                System.out.println("Arquivo criado: " + arquivo.getName());
-            }else{
-                System.out.println("O arquivo já existe.");
-            }
-            return arquivo;
-        }catch(IOException e){
-            System.out.println("Erro ao criar arquivo: " + e.getMessage());
-        }
-        return null;
-    }
     public Tarefa addTarefa(String nome, String descricao){
         String sql = "INSERT INTO tb_tarefa (nome, descricao) VALUES (?, ?)";
-        try(Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, nome);
             stmt.setString(2, descricao);
-            stmt.executeUpdate();
 
+            int linhasAfetadas = stmt.executeUpdate();
+
+            if(linhasAfetadas > 0){
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    Tarefa tarefa = new Tarefa();
+                    tarefa.setNome(nome);
+                    tarefa.setDescricao(descricao);
+
+                    return tarefa;
+                }
+            }
         }catch(SQLException e){
             e.printStackTrace();
-
         }
         return null;
     }
@@ -59,8 +50,7 @@ public class GerenciadorTarefas {
                 tarefa.setId(rs.getInt("id"));
                 tarefa.setNome(rs.getString("nome"));
                 tarefa.setDescricao(rs.getString("descricao"));
-                tarefa.setConcluida(rs.getBoolean("concluida"));
-
+                tarefa.setStatus(TarefaStatus.fromCodigo(rs.getInt("status")));
                 tarefas.add(tarefa);
             }
 
@@ -70,61 +60,15 @@ public class GerenciadorTarefas {
         return tarefas;
     }
 
-    public boolean marcarConcluida(int input){
-       if(input < 0 || input >= tarefas.size()){
-           return false;
-       }else {
-           Tarefa tarefaConcluida = tarefas.remove(input);
-           tarefaConcluida.setConcluida(true);
-           tarefasConcluidas.add(tarefaConcluida);
-           salvarArquivo();
+    public void atualizarTarefa(int id, String novoNome, String novaDescricao){
+        String sql = "UPDATE tb_tarefa SET nome = ?, descricao = ? WHERE id = " + id;
 
-           ultimaConcluida = tarefaConcluida;
-
-           return true;
-       }
-    }
-
-
-    public String mostrarOpecoesDaLista(){
-        return "O que deseja fazer em sua lista de tarefas? \n" +
-                "[1] - Criar tarefas \n" +
-                "[2] - Listar tarefas \n" +
-                "[3] - Marcar tarefas como concluída \n" +
-                "[4] - Deletar tarefas \n" +
-                "[5] - Sair";
-    }
-
-    public void salvarArquivo(){
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
-
-            bw.write("===PENDENTES===");
-            bw.newLine();
-            if(tarefas.isEmpty()){
-                bw.write("Todas as tarefas foram concluídas.");
-                bw.newLine();
-            }
-            for(Tarefa tarefa : tarefas){
-                bw.write("Tarefa: " + tarefa.getNome());
-                bw.newLine();
-                bw.write("Descrição: " + tarefa.getDescricao());
-                bw.newLine();
-            }
-            bw.write("===CONCLUÍDAS===");
-            bw.newLine();
-            if(tarefasConcluidas.isEmpty()){
-                bw.write("Nenhum tarefa foi concluída.");
-            }
-            for(Tarefa tarefasConcluidas : tarefasConcluidas){
-                bw.write("Tarefa: " + tarefasConcluidas.getNome());
-                bw.newLine();
-                bw.write("Descrição: " + tarefasConcluidas.getDescricao());
-                bw.newLine();
-            }
-            bw.newLine();
-        } catch (IOException e) {
-            System.out.println("Erro ao criar a tarefa " + e.getMessage());
+        try(Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)){
+            stmt.setString(1, novoNome);
+            stmt.setString(2, novaDescricao);
+            stmt.executeUpdate();
+        }catch(SQLException e){
+            e.printStackTrace();
         }
     }
 
@@ -140,17 +84,16 @@ public class GerenciadorTarefas {
             e.printStackTrace();
         }
     }
-
-    public ArrayList<Tarefa> pegarListaDePendentes(){
-        return tarefas;
+    public String mostrarOpecoesDaLista(){
+        return "O que deseja fazer em sua lista de tarefas? \n" +
+                "[1] - Adicionar tarefa \n" +
+                "[2] - Listar tarefas \n" +
+                "[3] - Atualizar tarefa \n" +
+                "[4] - Deletar tarefa \n" +
+                "[5] - Sair";
     }
-    public ArrayList<Tarefa> pegarListaDeConcluidas(){
-        return tarefasConcluidas;
-    }
-
 
     public void sair(){
-        salvarArquivo();
         System.exit(0);
     }
 }

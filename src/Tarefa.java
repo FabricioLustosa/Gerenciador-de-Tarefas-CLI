@@ -2,14 +2,14 @@ public class Tarefa {
     private Integer id;
     private String nome;
     private String descricao;
-    boolean concluida;
+    private TarefaStatus status;
 
     public Tarefa(){};
 
-    public Tarefa(String nome, String descricao) {
+    public Tarefa(String nome, String descricao, TarefaStatus status) {
         this.nome = nome;
         this.descricao = descricao;
-        this.concluida = false;
+        this.status = status;
     }
 
     public Integer getId() {
@@ -36,17 +36,30 @@ public class Tarefa {
         this.descricao = descricao;
     }
 
-    public boolean isConcluida(){
-        return concluida;
+    public TarefaStatus getStatus(){
+        return status;
     }
 
-    public void setConcluida(boolean concluida){
-      this.concluida = concluida;
+    public void setStatus(TarefaStatus status){
+      this.status = status;
+    }
+
+    // Métodos auxiliares
+    public boolean isConcluida() {
+        return status == TarefaStatus.CONCLUIDA;
+    }
+
+    public boolean isPendente() {
+        return status == TarefaStatus.PENDENTE;
     }
 
     @Override
-    public String toString(){
-        return "Tarefa: " + nome + "\n" + "Descrição: " + descricao + "\n" + "Concluída " + (concluida ? "Sim" : "Não");
+    public String toString() {
+        return String.format("ID: %d \n" +
+                "Nome: %s \n" +
+                "Descrição: %s \n" +
+                "Status: %s " + "\n",
+                id, nome, descricao, status.getDescricao());
     }
 
 }

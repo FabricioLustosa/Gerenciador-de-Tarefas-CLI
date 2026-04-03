@@ -1,28 +1,14 @@
-import db.DBConnection;
 
-import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
 
-        Connection conn = DBConnection.getConnection();
-        System.out.println("Conexão: " + conn);
-
 
         Scanner sc = new Scanner(System.in);
         GerenciadorTarefas gerenciadorTarefas = new GerenciadorTarefas();
 
-        System.out.print("Digite o caminho para a criação do arquivo: ");
-        String path = sc.nextLine();
-        System.out.print("Digite o nome do arquivo: ");
-        String nomeArquivo = sc.nextLine();
-
-        if(!nomeArquivo.toLowerCase().endsWith(".txt")){
-            nomeArquivo += ".txt";
-        }
-        gerenciadorTarefas.criarArquivo(path, nomeArquivo);
+        System.out.println("O que deseja fazer na sua lista de tarefas?");
 
 
         while(true) {
@@ -54,27 +40,21 @@ public class Main {
                     System.out.println(gerenciadorTarefas.listarTarefas());
                     continue;
                 case 3:
-                    while(true){
-                        System.out.println("Qual tarefa deseja marcar como concluída?");
-                        System.out.println();
-                        System.out.println(gerenciadorTarefas.listarTarefas());
-                        int tarefaConcluida = sc.nextInt() - 1;
-                        sc.nextLine();
-
-                        if(!gerenciadorTarefas.marcarConcluida(tarefaConcluida)){
-                            System.out.println("Tarefa não encontrada, digite um índice válido...");
-                            continue;
-                        }else{
-                            System.out.println("Tarefa: " + gerenciadorTarefas.ultimaConcluida.getNome() + "\n Status: concluída. \n");
-                        }
-                        break;
-                    }
-                    break;
-                case 4:
-                    System.out.print("Digite o Id da tarefa que deseja deletar: ");
                     gerenciadorTarefas.listarTarefas();
-                    int id = sc.nextInt();
-                    gerenciadorTarefas.deletarTarefa(id);
+                    System.out.print("Digite o ID da tarefa que deseja atualizar: ");
+                    int idAtualizar = sc.nextInt();
+                    sc.nextLine();
+                    System.out.print("Digite o novo nome da tarefa: ");
+                    String novoNome = sc.nextLine();
+                    System.out.print("Digite a nova descrição da tarefa: ");
+                    String novaDescricao = sc.nextLine();
+                    gerenciadorTarefas.atualizarTarefa(idAtualizar, novoNome, novaDescricao);
+                break;
+                case 4:
+                    System.out.print("Digite o id da tarefa que deseja deletar: ");
+                    gerenciadorTarefas.listarTarefas();
+                    int idDeletar = sc.nextInt();
+                    gerenciadorTarefas.deletarTarefa(idDeletar);
                     break;
                 case 5:
                     gerenciadorTarefas.sair();

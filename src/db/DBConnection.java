@@ -9,18 +9,13 @@ import java.util.Properties;
 
 public class DBConnection {
 
-    private static Connection conn = null;
-    public static Connection getConnection(){
-        if(conn == null){
-            try{
-                Properties props = loadProperties();
-                String url = props.getProperty("dburl");
-                conn = DriverManager.getConnection(url, props);
-            }catch(SQLException e){
-                throw new DbException(e.getMessage());
-            }
-        }
-       return conn;
+
+    public static Connection getConnection() throws SQLException{
+        Properties props = loadProperties();
+        String url = props.getProperty("dburl");
+        String user = props.getProperty("user");
+        String password = props.getProperty("password");
+        return DriverManager.getConnection(url, user, password);
     }
     private static Properties loadProperties(){
         try(FileInputStream fs = new FileInputStream("db.properties")){
