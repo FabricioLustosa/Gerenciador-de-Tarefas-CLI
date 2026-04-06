@@ -58,7 +58,7 @@ public class Tarefa {
         return String.format("ID: %d \n" +
                 "Nome: %s \n" +
                 "Descrição: %s \n" +
-                "Status: %s " + "\n",
+                "Status: %s",
                 id, nome, descricao, status.getDescricao());
     }
 

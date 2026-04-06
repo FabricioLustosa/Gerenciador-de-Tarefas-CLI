@@ -7,9 +7,6 @@ import java.util.List;
 
 public class GerenciadorTarefas {
 
-    Tarefa ultimaConcluida;
-
-
     public Tarefa addTarefa(String nome, String descricao){
         String sql = "INSERT INTO tb_tarefa (nome, descricao) VALUES (?, ?)";
         try(Connection conn = DBConnection.getConnection();
@@ -72,21 +69,24 @@ public class GerenciadorTarefas {
         }
     }
 
-    public void deletarTarefa(int id){
+    public boolean deletarTarefa(int id){
         String sql = "DELETE FROM tb_tarefa WHERE id = ?";
 
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql);
         ){
             stmt.setInt(1, id);
-            stmt.executeUpdate();
+            int linhasAfetadas = stmt.executeUpdate();
+
+            return linhasAfetadas > 0;
         }catch(SQLException e){
             e.printStackTrace();
         }
+        return false;
     }
+
     public String mostrarOpecoesDaLista(){
-        return "O que deseja fazer em sua lista de tarefas? \n" +
-                "[1] - Adicionar tarefa \n" +
+        return  "[1] - Adicionar tarefa \n" +
                 "[2] - Listar tarefas \n" +
                 "[3] - Atualizar tarefa \n" +
                 "[4] - Deletar tarefa \n" +
